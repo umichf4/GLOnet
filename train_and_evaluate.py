@@ -72,7 +72,6 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
         utils.plot_envolution(params.img_2_prev, params.eff_prev, params.grad_2_prev, img_2, Efficiency, params.iter, params.output_dir)
     else:
         utils.plot_arrow(img_2, Efficiency, grad_2, params.iter, params.output_dir)
-
     params.img_2_prev = img_2
     params.eff_prev = Efficiency
     params.grad_2_prev = grad_2
@@ -110,6 +109,7 @@ def evaluate(generator, eng, numImgs, params):
     Efficiency = torch.zeros(numImgs)
 
     images = torch.sign(images)
+    strucs = images.cpu().detach().numpy()
     img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
     img = matlab.double(img.tolist())
     wavelength = matlab.double([params.w] * numImgs)
@@ -117,12 +117,16 @@ def evaluate(generator, eng, numImgs, params):
 
     abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
     Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
-
+    max_eff_index = np.argmax(Efficiency)
+    max_eff = Efficiency[max_eff_index]
+    best_struc = strucs[max_eff_index, :, :].reshape(-1)
+    
     fig_path = params.output_dir + '/figures/Efficiency.png'
     utils.plot_histogram(Efficiency, params.numIter, fig_path)
 
     io.savemat(file_path, mdict={
-               'imgs': images.cpu().detach().numpy(), 'Effs': Efficiency})
+               'strucs': strucs, 'effs': Efficiency, 'best_struc':best_struc, 
+               'max_eff_index':max_eff_index, 'max_eff':max_eff })
 
 
 def train(models, optimizers, schedulers, eng, params):
@@ -161,7 +165,7 @@ def train(models, optimizers, schedulers, eng, params):
 
             scheduler_G.step()
 
-            if it == 1:
+            if it % params.save_iter == 0:
                 model_dir = os.path.join(
                     params.output_dir, 'model', 'iter{}'.format(it + iter0))
                 os.makedirs(model_dir, exist_ok=True)
@@ -177,7 +181,7 @@ def train(models, optimizers, schedulers, eng, params):
                                        },
                                       checkpoint=model_dir)
 
-            if it > params.numIter:
+            if it > params.numIter-1:
                 model_dir = os.path.join(params.output_dir, 'model')
                 utils.save_checkpoint({'iter': it + iter0 - 1,
                                        'gen_state_dict': generator.state_dict(),
@@ -243,7 +247,7 @@ def train(models, optimizers, schedulers, eng, params):
             g_loss_solver.backward()
             optimizer_G.step()
 
-            if it % 20 == 0:
+            if it % params.save_iter == 0:
 
                 generator.eval()
                 outputs_imgs = sample_images(generator, 100, params)
