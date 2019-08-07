@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-05 12:45:28
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-05 16:48:00
+# @Last Modified time: 2019-08-07 17:51:03
 
 import os
 import sys
@@ -30,7 +30,7 @@ class Generator(nn.Module):
         self.gkernel = gkern1D(params.gkernlen, params.gkernsig)
 
         self.FC = nn.Sequential(
-            nn.Linear(self.noise_dim, 256),
+            nn.Linear(self.noise_dim + 2, 256),
             nn.LeakyReLU(0.2),
             nn.Dropout(p=0.2),
             nn.Linear(256, 32 * 16, bias=False),
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     params = utils.Params(os.path.join(rootPath, "results\\Params.json"))
     generator = Generator(params)
     print(generator)
-    torchsummary.summary(generator, tuple([256]))
+    torchsummary.summary(generator, tuple([258]))
