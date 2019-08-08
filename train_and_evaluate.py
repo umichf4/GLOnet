@@ -78,7 +78,7 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
     return img_2, Efficiency
 
 
-def sample_images(generator, batch_size, params):
+def sample_images(generator, batch_size, params, lamda, theta):
 
     if params.noise_constant == 1:
         z = (torch.ones(batch_size, params.noise_dims).type(
@@ -90,7 +90,7 @@ def sample_images(generator, batch_size, params):
         else:
             z = (torch.randn(batch_size, params.noise_dims).type(
                 Tensor)) * params.noise_amplitude
-
+    z =torch.cat((lamda, theta, z), 1)
     if params.cuda:
         z.cuda()
     return generator(z)
@@ -231,8 +231,8 @@ def train(models, optimizers, schedulers, eng, params):
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()
             img = matlab.double(img.tolist())
 
-            wavelength = matlab.double(lamda.numpy())
-            desired_angle = matlab.double(theta.numpy())
+            wavelength = matlab.double(lamda.cpu().numpy().tolist())
+            desired_angle = matlab.double(theta.cpu().numpy().tolist())
 
             Grads_and_Effs = eng.GradientFromSolver_1D_parallel(
                 img, wavelength, desired_angle)
@@ -263,7 +263,7 @@ def train(models, optimizers, schedulers, eng, params):
             if it % params.save_iter == 0:
 
                 generator.eval()
-                outputs_imgs = sample_images(generator, 100, params)
+                outputs_imgs = sample_images(generator, 100, params, lamda, theta)
                 generator.train()
 
                 Binarization = torch.mean(torch.abs(outputs_imgs.view(-1)))

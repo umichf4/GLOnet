@@ -26,7 +26,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     output_dir = args.output_dir + '/w{}a{}'.format(args.wavelength, args.angle)
     restore_from = args.restore_from
-    #restore_from = 'results/w900a60/model/model.pth'
+    restore_from = 'results/w900a60/model/iter100/model.pth'
 
     os.makedirs(output_dir + '/outputs', exist_ok=True)
     os.makedirs(output_dir + '/figures', exist_ok=True)
