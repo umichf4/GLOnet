@@ -115,7 +115,6 @@ def evaluate(generator, eng, numImgs, params):
     img = matlab.double(img.tolist())
     wavelength = matlab.double([params.w] * numImgs)
     desired_angle = matlab.double([params.a] * numImgs)
-
     abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
     Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
     max_eff_index = np.argmax(Efficiency)
@@ -124,12 +123,45 @@ def evaluate(generator, eng, numImgs, params):
 
     fig_path = params.output_dir + '/figures/Efficiency.png'
     utils.plot_histogram(Efficiency, params.numIter, fig_path)
-
+    
+    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for', 'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff)) 
     io.savemat(file_path, mdict={
                'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
                'max_eff_index': max_eff_index, 'max_eff': max_eff})
 
 
+def test(generator, eng, numImgs, params):
+    generator.eval()
+
+    filename = 'ccGAN_imgs_Si_w' + \
+        str(params.w) + '_' + str(params.a) + 'deg_test.mat'
+    images = sample_images(generator, numImgs, params)
+    file_path = os.path.join(params.output_dir, 'outputs', filename)
+    logging.info('Test starts. \n')
+
+    Efficiency = torch.zeros(numImgs)
+
+    images = torch.sign(images)
+    strucs = images.cpu().detach().numpy()
+    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
+    img = matlab.double(img.tolist())
+    wavelength = matlab.double([params.w] * numImgs)
+    desired_angle = matlab.double([params.a] * numImgs)
+    abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
+    Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
+    max_eff_index = np.argmax(Efficiency)
+    max_eff = Efficiency[max_eff_index]
+    best_struc = strucs[max_eff_index, :, :].reshape(-1)
+
+#    fig_path = params.output_dir + '/figures/Efficiency.png'
+#    utils.plot_histogram(Efficiency, params.numIter, fig_path)
+    
+    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for', 'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff)) 
+    io.savemat(file_path, mdict={
+               'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
+               'max_eff_index': max_eff_index, 'max_eff': max_eff})
+    
+    
 def train(models, optimizers, schedulers, eng, params):
 
     generator = models
