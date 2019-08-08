@@ -21,7 +21,7 @@ parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
 parser.add_argument('--wavelength', default=600)
 parser.add_argument('--angle', default=45)
-parser.add_argument('--eval', default=True)
+parser.add_argument('--test', default=False)
 
 if __name__ == '__main__':
     # Load the directory from commend line
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     if params.cuda:
         generator.cuda()
     
-    if args.eval:
+    if args.test:
         test(generator, eng, numImgs=500, params=params)
     else:
         # Define the optimizers
