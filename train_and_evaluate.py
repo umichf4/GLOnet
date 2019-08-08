@@ -78,19 +78,21 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
     return img_2, Efficiency
 
 
-def sample_images(generator, batch_size, params, lamda, theta):
+def sample_images(generator, batch_size, params):
 
     if params.noise_constant == 1:
-        z = (torch.ones(batch_size, params.noise_dims).type(
+        noise = (torch.ones(batch_size, params.noise_dims).type(
             Tensor) * randconst) * params.noise_amplitude
     else:
         if params.noise_distribution == 'uniform':
-            z = (torch.rand(batch_size, params.noise_dims).type(
+            noise = (torch.rand(batch_size, params.noise_dims).type(
                 Tensor) * 2. - 1.) * params.noise_amplitude
         else:
-            z = (torch.randn(batch_size, params.noise_dims).type(
+            noise = (torch.randn(batch_size, params.noise_dims).type(
                 Tensor)) * params.noise_amplitude
-    z =torch.cat((lamda, theta, z), 1)
+    lamda = torch.ones(batch_size, 1).type(Tensor) * params.w
+    theta = torch.ones(batch_size, 1).type(Tensor) * params.a
+    z = torch.cat((lamda, theta, noise), 1)
     if params.cuda:
         z.cuda()
     return generator(z)
@@ -263,7 +265,7 @@ def train(models, optimizers, schedulers, eng, params):
             if it % params.save_iter == 0:
 
                 generator.eval()
-                outputs_imgs = sample_images(generator, 100, params, lamda, theta)
+                outputs_imgs = sample_images(generator, 100, params)
                 generator.train()
 
                 Binarization = torch.mean(torch.abs(outputs_imgs.view(-1)))
