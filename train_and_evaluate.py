@@ -25,9 +25,9 @@ def make_figure_dir(folder):
 
 def PCA_model(data_path):
     pca = PCA(n_components=2, svd_solver='randomized')
-    # dataset = io.loadmat(data_path, struct_as_record=False, squeeze_me=True)
-    # data = dataset['data']
-    # pca.fit(data)
+    dataset = io.loadmat(data_path, struct_as_record=False, squeeze_me=True)
+    data = dataset['best_struc']
+    pca.fit(data)
     return pca
 
 
@@ -49,7 +49,7 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
     # img = img[np.where(Efficiency.reshape(-1) > 0), :]
     # Efficiency = Efficiency[Efficiency > 0]
 
-    img_2 = pca.fit_transform(img)
+    img_2 = pca.transform(img)
 
     fig_path = params.output_dir + \
         '/figures/scatter/Iter{}.png'.format(params.iter)
@@ -170,7 +170,7 @@ def train(models, optimizers, schedulers, eng, params):
 
     generator.train()
 
-    pca = PCA_model(None)
+    pca = PCA_model("PCA.mat")
 
     make_figure_dir(params.output_dir)
 
