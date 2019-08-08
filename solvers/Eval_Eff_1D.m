@@ -5,7 +5,7 @@ function [ abseff ] = Eval_Eff_1D( img, wavelength, angle)
 img = img/2.0 + 0.5;
 
 n_air = 1;
-n_glass = 1.45;   # SiO2
+n_glass = 1.45;   % SiO2
 thickness  = 325;
 
 load('p_Si.mat')
