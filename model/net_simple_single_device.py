@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-05 12:45:28
 # @Last Modified by:   BrandonHanx
-# @Last Modified time: 2019-08-08 13:27:04
+# @Last Modified time: 2019-08-08 15:28:07
 
 import os
 import sys
@@ -41,7 +41,7 @@ class Generator(nn.Module):
 
         self.CONV = nn.Sequential(
             # ------------------------------------------------------
-            ConvTranspose1d_meta(16, 16, 5, stride=2, bias=False),
+            ConvTranspose1d_meta(32, 16, 5, stride=2, bias=False),
             nn.BatchNorm1d(16),
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
@@ -53,7 +53,7 @@ class Generator(nn.Module):
             nn.BatchNorm1d(4),
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
-            ConvTranspose1d_meta(4, 1, 5),
+            ConvTranspose1d_meta(4, 1, 5, stride=2, bias=False),
             nn.BatchNorm1d(1),
             nn.LeakyReLU(0.2),
         )
@@ -63,8 +63,9 @@ class Generator(nn.Module):
     def forward(self, z):
 
         net = self.FC(z)
-        net = net.view(-1, 16, 32)
+        net = net.view(-1, 32, 16)
         net = self.CONV(net)
+        # print("#################", net.shape)
         net += self.shortcut(z[:, 2:].view_as(net))
         net = conv1d_meta(net, self.gkernel)
         net = torch.tanh(net) * 1.05
