@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     if args.test:
         if args.test_group:
-            test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
+            max_eff, best_struc = test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
         else:
             test(generator, eng, numImgs=500, params=params)
     else:

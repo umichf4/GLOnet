@@ -192,6 +192,7 @@ def test_group(generator, eng, numImgs, params, test_num):
 
     print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
         max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
+    return max_eff, best_struc
 
 
 def train(models, optimizers, schedulers, eng, params):
