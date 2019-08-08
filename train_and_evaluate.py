@@ -26,7 +26,7 @@ def make_figure_dir(folder):
 def PCA_model(data_path):
     pca = PCA(n_components=2, svd_solver='randomized')
     dataset = io.loadmat(data_path, struct_as_record=False, squeeze_me=True)
-    data = dataset['best_struc']
+    data = dataset['new']
     pca.fit(data)
     return pca
 
@@ -123,8 +123,9 @@ def evaluate(generator, eng, numImgs, params):
 
     fig_path = params.output_dir + '/figures/Efficiency.png'
     utils.plot_histogram(Efficiency, params.numIter, fig_path)
-    
-    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for', 'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff)) 
+
+    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for',
+                                            'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff))
     io.savemat(file_path, mdict={
                'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
                'max_eff_index': max_eff_index, 'max_eff': max_eff})
@@ -153,23 +154,18 @@ def test(generator, eng, numImgs, params):
     max_eff = Efficiency[max_eff_index]
     best_struc = strucs[max_eff_index, :, :].reshape(-1)
 
-#    fig_path = params.output_dir + '/figures/Efficiency.png'
-#    utils.plot_histogram(Efficiency, params.numIter, fig_path)
-    
-    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for', 'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff)) 
+    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for',
+                                            'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff))
     io.savemat(file_path, mdict={
                'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
                'max_eff_index': max_eff_index, 'max_eff': max_eff})
-    
-   
+
+
 def test_group(generator, eng, numImgs, params, test_num):
     generator.eval()
 
-    filename = 'ccGAN_imgs_Si_w' + \
-        str(params.w) + '_' + str(params.a) + 'deg_test_group.mat'
     images = sample_images(generator, numImgs, params)
-    file_path = os.path.join(params.output_dir, 'outputs', filename)
-    logging.info('Test starts. \n')
+    logging.info('Test group starts. \n')
 
     Efficiency = torch.zeros(numImgs)
 
@@ -177,14 +173,14 @@ def test_group(generator, eng, numImgs, params, test_num):
     strucs = images.cpu().detach().numpy()
     img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
     img = matlab.double(img.tolist())
-    
+
     max_eff_index = []
     max_eff = []
     best_struc = []
     for i in range(test_num):
         lamda = random.uniform(600, 1200)
         theta = random.uniform(40, 80)
-    
+
         wavelength = matlab.double([lamda] * numImgs)
         desired_angle = matlab.double([theta] * numImgs)
         abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
@@ -193,18 +189,11 @@ def test_group(generator, eng, numImgs, params, test_num):
         max_eff_index.append(max_now)
         max_eff.append(Efficiency[max_now])
         best_struc.append(strucs[max_now, :, :].reshape(-1))
-        
 
-#    fig_path = params.output_dir + '/figures/Efficiency_group.png'
-#    utils.plot_histogram(np.array(max_eff), params.numIter, fig_path)
-    
-    print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
-#    print('{} {} {} {} {} {} {:.2f}'.format('The best efficiency for', 'wavelength =', params.w, 'and angle =', params.a, 'is', max_eff)) 
-#    io.savemat(file_path, mdict={
-#               'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
-#               'max_eff_index': max_eff_index, 'max_eff': max_eff})
-    
-    
+    print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
+        max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
+
+
 def train(models, optimizers, schedulers, eng, params):
 
     generator = models
@@ -293,8 +282,10 @@ def train(models, optimizers, schedulers, eng, params):
             """
             lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
             thetaconst = torch.rand(1).type(Tensor) * 40 + 40
-            lamda = torch.ones(params.solver_batch_size, 1).type(Tensor) * lamdaconst
-            theta = torch.ones(params.solver_batch_size, 1).type(Tensor) * thetaconst
+            lamda = torch.ones(params.solver_batch_size,
+                               1).type(Tensor) * lamdaconst
+            theta = torch.ones(params.solver_batch_size,
+                               1).type(Tensor) * thetaconst
 
             """
             batch randomized
