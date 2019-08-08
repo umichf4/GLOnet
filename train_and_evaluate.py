@@ -6,7 +6,6 @@ from tqdm import tqdm
 from torch.autograd import Variable
 import torch.nn.functional as F
 from torchvision.utils import save_image
-import torch.nn.functional as F
 import torch
 import utils
 import scipy.io as io
@@ -120,13 +119,13 @@ def evaluate(generator, eng, numImgs, params):
     max_eff_index = np.argmax(Efficiency)
     max_eff = Efficiency[max_eff_index]
     best_struc = strucs[max_eff_index, :, :].reshape(-1)
-    
+
     fig_path = params.output_dir + '/figures/Efficiency.png'
     utils.plot_histogram(Efficiency, params.numIter, fig_path)
 
     io.savemat(file_path, mdict={
-               'strucs': strucs, 'effs': Efficiency, 'best_struc':best_struc, 
-               'max_eff_index':max_eff_index, 'max_eff':max_eff })
+               'strucs': strucs, 'effs': Efficiency, 'best_struc': best_struc,
+               'max_eff_index': max_eff_index, 'max_eff': max_eff})
 
 
 def train(models, optimizers, schedulers, eng, params):
@@ -181,7 +180,7 @@ def train(models, optimizers, schedulers, eng, params):
                                        },
                                       checkpoint=model_dir)
 
-            if it > params.numIter-1:
+            if it > params.numIter - 1:
                 model_dir = os.path.join(params.output_dir, 'model')
                 utils.save_checkpoint({'iter': it + iter0 - 1,
                                        'gen_state_dict': generator.state_dict(),
@@ -203,23 +202,37 @@ def train(models, optimizers, schedulers, eng, params):
             params.solver_batch_size = int(params.solver_batch_size_start + (params.solver_batch_size_end -
                                                                              params.solver_batch_size_start) * (1 - (1 - normIter)**params.solver_batch_size_power))
             if params.noise_constant == 1:
-                z = (torch.ones(params.solver_batch_size, params.noise_dims).type(
+                noise = (torch.ones(params.solver_batch_size, params.noise_dims).type(
                     Tensor) * randconst) * params.noise_amplitude
             else:
                 if params.noise_distribution == 'uniform':
-                    z = ((torch.rand(params.solver_batch_size, params.noise_dims).type(
+                    noise = ((torch.rand(params.solver_batch_size, params.noise_dims).type(
                         Tensor) * 2. - 1.) * params.noise_amplitude)
                 else:
-                    z = (torch.randn(params.solver_batch_size, params.noise_dims).type(
+                    noise = (torch.randn(params.solver_batch_size, params.noise_dims).type(
                         Tensor)) * params.noise_amplitude
+            """
+            batch equivalent
+            """
+            lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
+            thetaconst = torch.rand(1).type(Tensor) * 40 + 40
+            lamda = torch.ones(params.solver_batch_size, 1).type(Tensor) * lamdaconst
+            theta = torch.ones(params.solver_batch_size, 1).type(Tensor) * thetaconst
 
+            """
+            batch randomized
+            """
+            # lamda = torch.rand(params.solver_batch_size, 1).type(Tensor) * 600 + 600
+            # theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
+
+            z = torch.cat((lamda, theta, noise), 1)
             gen_imgs = generator(z)
 
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()
             img = matlab.double(img.tolist())
-            wavelength = matlab.double([params.w] * params.solver_batch_size)
-            desired_angle = matlab.double(
-                [params.a] * params.solver_batch_size)
+
+            wavelength = matlab.double(lamda.numpy())
+            desired_angle = matlab.double(theta.numpy())
 
             Grads_and_Effs = eng.GradientFromSolver_1D_parallel(
                 img, wavelength, desired_angle)
