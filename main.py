@@ -23,7 +23,8 @@ parser.add_argument('--wavelength', default=700)
 parser.add_argument('--angle', default=50)
 parser.add_argument('--test', default=True)
 parser.add_argument('--test_group', default=True)
-parser.add_argument('--test_num', default=2)
+parser.add_argument('--test_num', default=10)
+
 if __name__ == '__main__':
     # Load the directory from commend line
     args = parser.parse_args()
