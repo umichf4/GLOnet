@@ -271,6 +271,7 @@ def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
     plt.close()
 
 def plot_histogram(Effs, Iter, fig_path):
+    # %matplotlib qt5
     ax = plt.figure()
     bins = [i*5 for i in range(21)]
     plt.hist(Effs*100, bins, facecolor='blue', alpha=0.5)
@@ -282,7 +283,8 @@ def plot_histogram(Effs, Iter, fig_path):
     plt.xlabel('Deflection efficiency (%)', fontsize=12)
     plt.title('Iteration {}'.format(Iter), fontsize=16)
     plt.savefig(fig_path, dpi=300)
-    plt.close()
+    plt.show()
+    #plt.close()
 
 
 def plot_arrow(imgs, Effs, grads, Iter, fig_path):

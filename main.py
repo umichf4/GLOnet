@@ -3,7 +3,7 @@ import sys
 import logging
 import argparse
 import numpy as np
-from train_and_evaluate import evaluate, train, test
+from train_and_evaluate import evaluate, train, test, test_group
 from model.net_simple_single_device import Generator
 import utils
 import torch
@@ -19,10 +19,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--output_dir', default='results', help="Generated devices folder")
 parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', default=600)
-parser.add_argument('--angle', default=45)
-parser.add_argument('--test', default=False)
-
+parser.add_argument('--wavelength', default=700)
+parser.add_argument('--angle', default=50)
+parser.add_argument('--test', default=True)
+parser.add_argument('--test_group', default=True)
+parser.add_argument('--test_num', default=2)
 if __name__ == '__main__':
     # Load the directory from commend line
     args = parser.parse_args()
@@ -68,7 +69,10 @@ if __name__ == '__main__':
         generator.cuda()
     
     if args.test:
-        test(generator, eng, numImgs=500, params=params)
+        if args.test_group:
+            test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
+        else:
+            test(generator, eng, numImgs=500, params=params)
     else:
         # Define the optimizers
         optimizer_G = torch.optim.Adam(generator.parameters(), lr=params.lr_gen, betas=(params.beta1_gen, params.beta2_gen))
