@@ -68,10 +68,8 @@ if __name__ == '__main__':
     generator = Generator(params)
     if params.cuda:
         generator.cuda()
-<< << << < HEAD
-<< << << < HEAD
 
-# Define the optimizers
+    # Define the optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(
     ), lr=params.lr_gen, betas=(params.beta1_gen, params.beta2_gen))
 
@@ -94,9 +92,6 @@ if __name__ == '__main__':
     # Generate images and save
     logging.info('Start generating devices for wavelength')
     evaluate(generator, eng, numImgs=500, params=params)
-== == == =
-== == == =
->>>>>> > 3d3a87609fe77397872d6a2c6c9bfd4741273815
 
     if args.test:
         test(generator, eng, numImgs=500, params=params)
@@ -106,12 +101,14 @@ if __name__ == '__main__':
                                        betas=(params.beta1_gen, params.beta2_gen))
 
         # Define the schedulers
-        scheduler_G = torch.optim.lr_scheduler.StepLR(optimizer_G, step_size=params.step_size, gamma=params.gamma)
+        scheduler_G = torch.optim.lr_scheduler.StepLR(
+            optimizer_G, step_size=params.step_size, gamma=params.gamma)
 
         # load model data
         if restore_from is not None:
-            #params.checkpoint = utils.load_checkpoint(restore_from, (generator, discriminator), (optimizer_G, optimizer_D), (scheduler_G, scheduler_D))
-            params.checkpoint = utils.load_checkpoint(restore_from, generator, optimizer_G, scheduler_G)
+            # params.checkpoint = utils.load_checkpoint(restore_from, (generator, discriminator), (optimizer_G, optimizer_D), (scheduler_G, scheduler_D))
+            params.checkpoint = utils.load_checkpoint(
+                restore_from, generator, optimizer_G, scheduler_G)
             logging.info('Model data loaded')
 
         # train the model and save
@@ -122,7 +119,3 @@ if __name__ == '__main__':
         # Generate images and save
         logging.info('Start generating devices for wavelength')
         evaluate(generator, eng, numImgs=500, params=params)
-<< << << < HEAD
->>>>>> > 3d3a87609fe77397872d6a2c6c9bfd4741273815
-== == == =
->>>>>> > 3d3a87609fe77397872d6a2c6c9bfd4741273815

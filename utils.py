@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 """General utility functions"""
 import matplotlib
 matplotlib.use('Agg')
-#plt.rcParams['animation.ffmpeg_path'] = '/share/software/user/open/ffmpeg/4.0/bin/ffmpeg'
+# plt.rcParams['animation.ffmpeg_path'] = '/share/software/user/open/ffmpeg/4.0/bin/ffmpeg'
 
 
 class Params():
