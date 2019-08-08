@@ -231,8 +231,8 @@ def train(models, optimizers, schedulers, eng, params):
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()
             img = matlab.double(img.tolist())
 
-            wavelength = matlab.double(lamda.numpy())
-            desired_angle = matlab.double(theta.numpy())
+            wavelength = matlab.double(lamda.cpu().numpy().tolist())
+            desired_angle = matlab.double(theta.cpu().numpy().tolist())
 
             Grads_and_Effs = eng.GradientFromSolver_1D_parallel(
                 img, wavelength, desired_angle)
@@ -251,7 +251,7 @@ def train(models, optimizers, schedulers, eng, params):
 
             binary_penalty = params.binary_penalty_start if params.iter < params.binary_step_iter else params.binary_penalty_end
             if params.binary == 1:
-                g_loss_solver = -torch.sum(torch.mean(Gradients, dim=0).view(-1)) - torch.mean(
+                g_loss_solver = - torch.sum(torch.mean(Gradients, dim=0).view(-1)) - torch.mean(
                     torch.abs(gen_imgs.view(-1)) * (2.0 - torch.abs(gen_imgs.view(-1)))) * binary_penalty
             else:
                 g_loss_solver = - \
