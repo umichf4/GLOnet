@@ -6,7 +6,7 @@
     "single_device": 0,
     "noise_distribution": "uniform",
     "noise_amplitude": 30,
-    "numIter": 1000,
+    "numIter": 10000,
     "gkernlen": 19.0,
     "gkernsig": 6.0,
     "lr_gen": 1e-03,
