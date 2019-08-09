@@ -22,8 +22,9 @@ parser.add_argument('--restore_from', default=None,
 parser.add_argument('--wavelength', default=700)
 parser.add_argument('--angle', default=50)
 parser.add_argument('--test', default=True)
-parser.add_argument('--test_group', default=True)
+parser.add_argument('--test_group', default=False)
 parser.add_argument('--test_num', default=10)
+
 
 if __name__ == '__main__':
     # Load the directory from commend line
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     output_dir = args.output_dir + \
         '/w{}a{}'.format(args.wavelength, args.angle)
     restore_from = args.restore_from
-    #restore_from = 'results/w900a60/model/model.pth'
+    # restore_from = 'results/w900a60/model/model.pth'
 
     os.makedirs(output_dir + '/outputs', exist_ok=True)
     os.makedirs(output_dir + '/figures', exist_ok=True)
