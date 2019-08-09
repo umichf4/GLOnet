@@ -196,7 +196,8 @@ def test_group(generator, eng, numImgs, params, test_num):
 
 
 def train(models, optimizers, schedulers, eng, params):
-
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
     generator = models
     optimizer_G = optimizers
     scheduler_G = schedulers
@@ -295,6 +296,8 @@ def train(models, optimizers, schedulers, eng, params):
             # theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
 
             z = torch.cat((lamda, theta, noise), 1)
+            z = z.to(device)
+            generator.to(device)
             gen_imgs = generator(z)
 
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()

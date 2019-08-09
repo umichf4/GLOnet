@@ -15,15 +15,16 @@ eng.addpath(eng.genpath('/reticolo_allege'))
 eng.addpath(eng.genpath('solvers'))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output_dir', default='results',
+parser.add_argument('--output_dir', default='results', 
                     help="Generated devices folder")
 parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', default=900)
-parser.add_argument('--angle', default=75)
+parser.add_argument('--wavelength', default=650)
+parser.add_argument('--angle', default=45)
 parser.add_argument('--test', default=False)
 parser.add_argument('--test_group', default=True)
 parser.add_argument('--test_num', default=10)
+
 
 if __name__ == '__main__':
     # Load the directory from commend line
@@ -31,7 +32,8 @@ if __name__ == '__main__':
     output_dir = args.output_dir + \
         '/w{}a{}'.format(args.wavelength, args.angle)
     restore_from = args.restore_from
-    #restore_from = 'results/w900a60/model/model.pth'
+    #restore_from = 'results/w900a75/model/iter2700/model.pth'
+    # restore_from = 'results/w900a60/model/model.pth'
 
     os.makedirs(output_dir + '/outputs', exist_ok=True)
     os.makedirs(output_dir + '/figures', exist_ok=True)
