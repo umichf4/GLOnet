@@ -30,7 +30,7 @@ period = wavelength/(sind(desired_angle));
 
 % forward simulation
 k_par_f = sind(incident_angle)*n_sub; % incident moment
-nn = ceil(12*period/min(wavelength))
+nn = ceil(12*period/min(wavelength));
 % nn = 40
 
 retio([],inf*1i);
