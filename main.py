@@ -19,17 +19,11 @@ parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder")
 parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
-<< << << < HEAD
+
 parser.add_argument('--wavelength', default=700)
 parser.add_argument('--angle', default=50)
 parser.add_argument('--test', default=True)
 parser.add_argument('--test_group', default=False)
-== == == =
-parser.add_argument('--wavelength', default=900)
-parser.add_argument('--angle', default=75)
-parser.add_argument('--test', default=False)
-parser.add_argument('--test_group', default=True)
->>>>>> > bb4a98778000a68814755978939684018f151a5c
 parser.add_argument('--test_num', default=10)
 
 
