@@ -78,6 +78,11 @@ if __name__ == '__main__':
     import torchsummary
 
     params = utils.Params(os.path.join(rootPath, "results\\Params.json"))
-    generator = Generator(params)
+    
+    if torch.cuda.is_available():
+        generator = Generator(params).cuda()
+    else:
+        generator = Generator(params)
+    
     print(generator)
     torchsummary.summary(generator, tuple([258]))
