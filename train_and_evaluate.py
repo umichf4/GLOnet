@@ -232,40 +232,6 @@ def train(models, optimizers, schedulers, eng, params):
 
             scheduler_G.step()
 
-            if it % params.save_iter == 0:
-                model_dir = os.path.join(
-                    params.output_dir, 'model', 'iter{}'.format(it + iter0))
-                os.makedirs(model_dir, exist_ok=True)
-                utils.save_checkpoint({'iter': it + iter0 - 1,
-                                       'gen_state_dict': generator.state_dict(),
-                                       'optim_G_state_dict': optimizer_G.state_dict(),
-                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
-                                       'Eff_mean_history': Eff_mean_history,
-                                       'Binarization_history': Binarization_history,
-                                       'pattern_variance': pattern_variance,
-                                       'Effs_2': Effs_2,
-                                       'imgs_2': imgs_2
-                                       },
-                                      checkpoint=model_dir)
-
-            if it > params.numIter - 1:
-                model_dir = os.path.join(params.output_dir, 'model')
-                utils.save_checkpoint({'iter': it + iter0 - 1,
-                                       'gen_state_dict': generator.state_dict(),
-                                       'optim_G_state_dict': optimizer_G.state_dict(),
-                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
-                                       'Eff_mean_history': Eff_mean_history,
-                                       'Binarization_history': Binarization_history,
-                                       'pattern_variance': pattern_variance,
-                                       'Effs_2': Effs_2,
-                                       'imgs_2': imgs_2
-                                       },
-                                      checkpoint=model_dir)
-
-                io.savemat(params.output_dir + '/scatter.mat',
-                           mdict={'imgs_2': np.asarray(imgs_2), 'Effs_2': np.asarray(Effs_2)})
-                return
-
             # use solver and phyiscal gradient to update the Generator
             params.solver_batch_size = int(params.solver_batch_size_start + (params.solver_batch_size_end -
                                                                              params.solver_batch_size_start) * (1 - (1 - normIter)**params.solver_batch_size_power))
@@ -334,6 +300,8 @@ def train(models, optimizers, schedulers, eng, params):
 
             if it % params.save_iter == 0:
 
+                # visualization
+
                 generator.eval()
                 outputs_imgs = sample_images(generator, 100, params)
                 generator.train()
@@ -359,5 +327,40 @@ def train(models, optimizers, schedulers, eng, params):
                 Eff_mean_history.append(np.mean(Eff_2_tmp))
                 utils.plot_loss_history(
                     ([], [], Eff_mean_history, pattern_variance, Binarization_history), params.output_dir)
+
+                # save model
+
+                model_dir = os.path.join(
+                    params.output_dir, 'model', 'iter{}'.format(it + iter0))
+                os.makedirs(model_dir, exist_ok=True)
+                utils.save_checkpoint({'iter': it + iter0,
+                                       'gen_state_dict': generator.state_dict(),
+                                       'optim_G_state_dict': optimizer_G.state_dict(),
+                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
+                                       'Eff_mean_history': Eff_mean_history,
+                                       'Binarization_history': Binarization_history,
+                                       'pattern_variance': pattern_variance,
+                                       'Effs_2': Effs_2,
+                                       'imgs_2': imgs_2
+                                       },
+                                      checkpoint=model_dir)
+
+            if it == params.numIter:
+                model_dir = os.path.join(params.output_dir, 'model')
+                utils.save_checkpoint({'iter': it + iter0,
+                                       'gen_state_dict': generator.state_dict(),
+                                       'optim_G_state_dict': optimizer_G.state_dict(),
+                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
+                                       'Eff_mean_history': Eff_mean_history,
+                                       'Binarization_history': Binarization_history,
+                                       'pattern_variance': pattern_variance,
+                                       'Effs_2': Effs_2,
+                                       'imgs_2': imgs_2
+                                       },
+                                      checkpoint=model_dir)
+
+                io.savemat(params.output_dir + '/scatter.mat',
+                           mdict={'imgs_2': np.asarray(imgs_2), 'Effs_2': np.asarray(Effs_2)})
+                return
 
             t.update()

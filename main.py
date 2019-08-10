@@ -19,8 +19,8 @@ parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder")
 parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', default=650)
-parser.add_argument('--angle', default=45)
+parser.add_argument('--wavelength', default=600)
+parser.add_argument('--angle', default=60)
 parser.add_argument('--test', default=False)
 parser.add_argument('--test_group', default=True)
 parser.add_argument('--test_num', default=10)
@@ -31,9 +31,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     output_dir = args.output_dir + \
         '/w{}a{}'.format(args.wavelength, args.angle)
-    restore_from = args.restore_from
-    #restore_from = 'results/w900a75/model/iter2700/model.pth'
-    # restore_from = 'results/w900a60/model/model.pth'
 
     os.makedirs(output_dir + '/outputs', exist_ok=True)
     os.makedirs(output_dir + '/figures', exist_ok=True)
@@ -53,7 +50,7 @@ if __name__ == '__main__':
     params.lambda_gp = 10.0
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
-    params.restore_from = restore_from
+    params.restore_from = args.restore_from
 
     params.batch_size = int(params.batch_size)
     params.numIter = int(params.numIter)
@@ -88,10 +85,9 @@ if __name__ == '__main__':
             optimizer_G, step_size=params.step_size, gamma=params.gamma)
 
         # load model data
-        if restore_from is not None:
-            # params.checkpoint = utils.load_checkpoint(restore_from, (generator, discriminator), (optimizer_G, optimizer_D), (scheduler_G, scheduler_D))
+        if params.restore_from is not None:
             params.checkpoint = utils.load_checkpoint(
-                restore_from, generator, optimizer_G, scheduler_G)
+                params.restore_from, generator, optimizer_G, scheduler_G)
             logging.info('Model data loaded')
 
         # train the model and save
