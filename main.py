@@ -15,7 +15,7 @@ eng.addpath(eng.genpath('/reticolo_allege'))
 eng.addpath(eng.genpath('solvers'))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--output_dir', default='results', 
+parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder")
 parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
