@@ -208,6 +208,9 @@ def train(models, optimizers, schedulers, eng, params):
 
     make_figure_dir(params.output_dir)
 
+    lamda_list = [600, 700, 800, 900, 1000, 1100, 1200]
+    theta_list = [40, 50, 60, 70, 80]
+
     if params.restore_from is None:
         Eff_mean_history = []
         Binarization_history = []
@@ -251,9 +254,9 @@ def train(models, optimizers, schedulers, eng, params):
             # lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
             # thetaconst = torch.rand(1).type(Tensor) * 40 + 40
             lamda = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * 900
+                               1).type(Tensor) * random.choice(lamda_list)
             theta = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * 60
+                               1).type(Tensor) * random.choice(theta_list)
 
             """
             batch randomized
