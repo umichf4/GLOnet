@@ -11,7 +11,7 @@ from torchsummary import summary
 
 import matlab.engine
 eng = matlab.engine.start_matlab()
-eng.addpath(eng.genpath('/reticolo_allege'))
+eng.addpath(eng.genpath('reticolo_allege'))
 eng.addpath(eng.genpath('solvers'))
 
 parser = argparse.ArgumentParser()
