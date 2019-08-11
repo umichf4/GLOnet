@@ -21,7 +21,7 @@
     "solver_batch_size_power": 1,
     "binary": 1,
     "binary_penalty_start": 0,
-    "binary_penalty_end": 100,
+    "binary_penalty_end": 0.2,
     "binary_penalty_power": 4,
     "binary_step_iter": 500,
     "binary_amp": 10,
