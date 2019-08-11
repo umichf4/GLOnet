@@ -21,8 +21,8 @@ parser.add_argument('--restore_from', default=None,
                     help="Optional, directory or file containing weights to reload before training")
 parser.add_argument('--wavelength', default=900)
 parser.add_argument('--angle', default=60)
-parser.add_argument('--test', default=False)
-parser.add_argument('--test_group', default=True)
+parser.add_argument('--test', action='store_true', default=False)
+parser.add_argument('--test_group', action='store_true', default=False)
 parser.add_argument('--test_num', default=10)
 
 
@@ -60,26 +60,26 @@ if __name__ == '__main__':
     if params.cuda:
         generator.cuda()
 
+    # Define the optimizers
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=params.lr_gen,
+                                   betas=(params.beta1_gen, params.beta2_gen))
+
+    # Define the schedulers
+    scheduler_G = torch.optim.lr_scheduler.StepLR(
+        optimizer_G, step_size=params.step_size, gamma=params.gamma)
+
+    # load model data
+    if params.restore_from is not None:
+        params.checkpoint = utils.load_checkpoint(
+            params.restore_from, generator, optimizer_G, scheduler_G)
+        logging.info('Model data loaded')
+
     if args.test:
         if args.test_group:
             max_eff, best_struc = test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
         else:
             test(generator, eng, numImgs=500, params=params)
     else:
-        # Define the optimizers
-        optimizer_G = torch.optim.Adam(generator.parameters(), lr=params.lr_gen,
-                                       betas=(params.beta1_gen, params.beta2_gen))
-
-        # Define the schedulers
-        scheduler_G = torch.optim.lr_scheduler.StepLR(
-            optimizer_G, step_size=params.step_size, gamma=params.gamma)
-
-        # load model data
-        if params.restore_from is not None:
-            params.checkpoint = utils.load_checkpoint(
-                params.restore_from, generator, optimizer_G, scheduler_G)
-            logging.info('Model data loaded')
-
         # train the model and save
         if params.numIter != 0:
             logging.info('Start training')
