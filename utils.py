@@ -226,7 +226,7 @@ def plot_loss_history(loss_history, output_dir):
 
 
 def plot_scatter(imgs, Effs, Iter, fig_path):
-    fig = plt.figure()
+    # fig = plt.figure()
     plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
                 cmap=plt.cm.rainbow, vmin=0, vmax=100)
     cb = plt.colorbar()
@@ -278,7 +278,7 @@ def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
 
 def plot_histogram(Effs, Iter, fig_path):
     # %matplotlib qt5
-    ax = plt.figure()
+    # ax = plt.figure()
     bins = [i * 5 for i in range(21)]
     plt.hist(Effs * 100, bins, facecolor='blue', alpha=0.5)
     plt.xlim(0, 100)
@@ -294,17 +294,17 @@ def plot_histogram(Effs, Iter, fig_path):
 
 
 def plot_arrow(imgs, Effs, grads, Iter, fig_path):
-    ax = plt.figure()
+    # ax = plt.figure()
     plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
                 cmap=plt.cm.rainbow, vmin=0, vmax=100)
     plt.colorbar()
     plt.clim(0, 100)
     plt.quiver(imgs[:, 0], imgs[:, 1], grads[:, 0], grads[:, 1])
-    #plt.xlim(-11, -3)
-    #plt.ylim(2, 8)
+    # plt.xlim(-11, -3)
+    # plt.ylim(2, 8)
     # plt.xticks(fontsize=20)
     # plt.yticks(fontsize=20)
-    #plt.title('Iteration {}'.format(Iter), fontsize=20)
+    # plt.title('Iteration {}'.format(Iter), fontsize=20)
     plt.yticks([])
     plt.xticks([])
     plt.savefig(fig_path, dpi=300)
