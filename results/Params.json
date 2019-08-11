@@ -27,5 +27,5 @@
     "binary_amp": 10,
     "step_size": 500000000,
     "gamma": 1,
-    "sigma": 0.5,
+    "sigma": 0.5
 }
