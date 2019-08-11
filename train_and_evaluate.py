@@ -95,7 +95,7 @@ def sample_images(generator, batch_size, params):
     z = torch.cat((lamda, theta, noise), 1)
     if params.cuda:
         z.cuda()
-    return generator(z)
+    return generator(z, params.binary_amp)
 
 
 def evaluate(generator, eng, numImgs, params):
@@ -235,6 +235,10 @@ def train(models, optimizers, schedulers, eng, params):
 
             scheduler_G.step()
 
+            # binarization amplitude in the tanh function
+            if params.iter < 1000:
+                params.binary_amp = int(params.iter / 100) + 1
+
             # use solver and phyiscal gradient to update the Generator
             params.solver_batch_size = int(params.solver_batch_size_start + (params.solver_batch_size_end -
                                                                              params.solver_batch_size_start) * (1 - (1 - normIter)**params.solver_batch_size_power))
@@ -267,7 +271,7 @@ def train(models, optimizers, schedulers, eng, params):
             z = torch.cat((lamda, theta, noise), 1)
             z = z.to(device)
             generator.to(device)
-            gen_imgs = generator(z)
+            gen_imgs = generator(z, params.binary_amp)
 
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()
             img = matlab.double(img.tolist())
@@ -307,7 +311,6 @@ def train(models, optimizers, schedulers, eng, params):
 
                 generator.eval()
                 outputs_imgs = sample_images(generator, 100, params)
-                generator.train()
 
                 Binarization = torch.mean(torch.abs(outputs_imgs.view(-1)))
                 Binarization_history.append(Binarization)
@@ -330,6 +333,8 @@ def train(models, optimizers, schedulers, eng, params):
                 Eff_mean_history.append(np.mean(Eff_2_tmp))
                 utils.plot_loss_history(
                     ([], [], Eff_mean_history, pattern_variance, Binarization_history), params.output_dir)
+
+                generator.train()
 
                 # save model
 

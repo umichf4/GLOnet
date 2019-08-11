@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-05 12:45:28
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-10 20:20:47
+# @Last Modified time: 2019-08-11 13:24:42
 
 import os
 import sys
@@ -56,14 +56,14 @@ class Generator(nn.Module):
 
         self.shortcut = nn.Sequential()
 
-    def forward(self, z):
+    def forward(self, z, amp):
 
         net = self.FC(z)
         net = net.view(-1, 16, 32)
         net = self.CONV(net)
         net += self.shortcut(z[:, 2:].view_as(net))
         net = conv1d_meta(net, self.gkernel)
-        net = torch.tanh(10 * net) * 1.05
+        net = torch.tanh(amp * net) * 1.05
 
         return net
 

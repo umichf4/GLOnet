@@ -51,16 +51,6 @@ if __name__ == '__main__':
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
     params.restore_from = args.restore_from
-
-    params.batch_size = int(params.batch_size)
-    params.numIter = int(params.numIter)
-    params.noise_dims = int(params.noise_dims)
-    params.label_dims = int(params.label_dims)
-    params.gkernlen = int(params.gkernlen)
-    params.n_solver = int(params.n_solver)
-    params.n_solver_th = int(params.n_solver_th)
-    params.step_size = int(params.step_size)
-
     params.w = args.wavelength
     params.a = args.angle
 
