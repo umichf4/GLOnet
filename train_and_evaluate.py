@@ -248,12 +248,12 @@ def train(models, optimizers, schedulers, eng, params):
             """
             batch equivalent
             """
-            lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
-            thetaconst = torch.rand(1).type(Tensor) * 40 + 40
+            # lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
+            # thetaconst = torch.rand(1).type(Tensor) * 40 + 40
             lamda = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * lamdaconst
+                               1).type(Tensor) * 900
             theta = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * thetaconst
+                               1).type(Tensor) * 60
 
             """
             batch randomized
