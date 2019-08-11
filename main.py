@@ -16,14 +16,14 @@ eng.addpath(eng.genpath('solvers'))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output_dir', default='results',
-                    help="Generated devices folder")
-parser.add_argument('--restore_from', default=None,
+                    help="Generated devices folder", type=str)
+parser.add_argument('--restore_from', default=None, type=str,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', default=900)
-parser.add_argument('--angle', default=60)
+parser.add_argument('--wavelength', type=float, default=900)
+parser.add_argument('--angle', type=float, default=60)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--test_group', action='store_true', default=False)
-parser.add_argument('--test_num', default=10)
+parser.add_argument('--test_num', type=int, default=10)
 
 
 if __name__ == '__main__':
@@ -51,8 +51,8 @@ if __name__ == '__main__':
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
     params.restore_from = args.restore_from
-    params.w = args.wavelength
-    params.a = args.angle
+    params.w = float(args.wavelength)
+    params.a = float(args.angle)
 
     # Define the models
 
@@ -75,10 +75,11 @@ if __name__ == '__main__':
         logging.info('Model data loaded')
 
     if args.test:
-        if args.test_group:
-            max_eff, best_struc = test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
-        else:
-            test(generator, eng, numImgs=500, params=params)
+        test(generator, eng, numImgs=500, params=params)
+
+    elif args.test_group:
+        test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
+
     else:
         # train the model and save
         if params.numIter != 0:
