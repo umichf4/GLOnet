@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-05 12:45:28
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-09 23:53:51
+# @Last Modified time: 2019-08-11 16:40:10
 
 import os
 import sys
@@ -70,7 +70,7 @@ class Generator(nn.Module):
             # nn.BatchNorm1d(512),
         )
 
-    def forward(self, z):
+    def forward(self, z, amp):
         noise = z[:, 2:]
         label = z[:, 0:2]
         # print("noise", noise.shape)
@@ -92,7 +92,7 @@ class Generator(nn.Module):
         net += self.shortcut(noise.unsqueeze(1))
         # print("after shortcut", net.shape)
         net = conv1d_meta(net, self.gkernel)
-        net = torch.tanh(10 * net) * 1.05
+        net = torch.tanh(amp * net) * 1.05
         # print("end", net.shape)
 
         return net
