@@ -314,12 +314,12 @@ def train(models, optimizers, schedulers, eng, params):
             Eff_max = torch.max(Efficiency_real.view(-1))
             Eff_reshape = Efficiency_real.view(-1, 1).unsqueeze(2)
 
-            print(type(Eff_max))
+            # print(type(Eff_max))
 
             Gradients = Tensor(grads).unsqueeze(
                 1) * gen_imgs * (1. / params.sigma * torch.exp((Eff_reshape - Eff_max) / params.sigma))
 
-            print(Gradients.shape, gen_imgs.shape, torch.mean(Gradients, dim=0).shape)
+            # print(Gradients.shape, gen_imgs.shape, torch.mean(Gradients, dim=0).shape)
 
             # Train generator
             optimizer_G.zero_grad()
