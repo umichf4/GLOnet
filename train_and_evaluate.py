@@ -281,18 +281,18 @@ def train(models, optimizers, schedulers, eng, params):
             """
             batch equivalent
             """
-            # lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
-            # thetaconst = torch.rand(1).type(Tensor) * 40 + 40
-            # lamda = torch.ones(params.solver_batch_size,
-            #                    1).type(Tensor) * random.choice(lamda_list)
-            # theta = torch.ones(params.solver_batch_size,
-            #                    1).type(Tensor) * random.choice(theta_list)
+            lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
+            thetaconst = torch.rand(1).type(Tensor) * 40 + 40
+            lamda = torch.ones(params.solver_batch_size,
+                               1).type(Tensor) * lamdaconst
+            theta = torch.ones(params.solver_batch_size,
+                               1).type(Tensor) * thetaconst
 
             """
             batch randomized
             """
-            lamda = torch.rand(params.solver_batch_size, 1).type(Tensor) * 600 + 600
-            theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
+            # lamda = torch.rand(params.solver_batch_size, 1).type(Tensor) * 600 + 600
+            # theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
 
             z = torch.cat((lamda, theta, noise), 1)
             z = z.to(device)
@@ -314,8 +314,12 @@ def train(models, optimizers, schedulers, eng, params):
             Eff_max = torch.max(Efficiency_real.view(-1))
             Eff_reshape = Efficiency_real.view(-1, 1).unsqueeze(2)
 
+            print(type(Eff_max))
+
             Gradients = Tensor(grads).unsqueeze(
-                1) * gen_imgs * 1e-3 * (1. / params.sigma * torch.exp((Eff_reshape - Eff_max) / params.sigma))
+                1) * gen_imgs * (1. / params.sigma * torch.exp((Eff_reshape - Eff_max) / params.sigma))
+
+            print(Gradients.shape, gen_imgs.shape, torch.mean(Gradients, dim=0).shape)
 
             # Train generator
             optimizer_G.zero_grad()
