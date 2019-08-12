@@ -68,7 +68,8 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
     grads = eng.GradientFromSolver_1D_parallel(img, wavelength, desired_angle)
     grad_2 = pca.transform(grads)
     if params.iter % 2 == 0:
-        utils.plot_envolution(params.img_2_prev, params.eff_prev, params.grad_2_prev, img_2, Efficiency, params.iter, params.output_dir)
+        utils.plot_envolution(params.img_2_prev, params.eff_prev, params.grad_2_prev,
+                              img_2, Efficiency, params.iter, params.output_dir)
     else:
         utils.plot_arrow(img_2, Efficiency, grad_2, params.iter, params.output_dir)
     params.img_2_prev = img_2
@@ -174,25 +175,46 @@ def test_group(generator, eng, numImgs, params, test_num):
     img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
     img = matlab.double(img.tolist())
 
-    max_eff_index = []
-    max_eff = []
-    best_struc = []
-    for i in range(test_num):
-        lamda = random.uniform(600, 1200)
-        theta = random.uniform(40, 80)
+    if params.heatmap:
+        lamda_list = [600, 700, 800, 900, 1000, 1100, 1200]
+        theta_list = [40, 50, 60, 70, 80]
+        H = len(lamda_list)
+        W = len(theta_list)
+        heat_scores = np.zeros((W, H))
+        with tqdm(total=H * W) as t:
+            for lamda, i in zip(lamda_list[::-1], range(H)):
+                for theta, j in zip(theta_list, range(W)):
+                    wavelength = matlab.double([lamda] * numImgs)
+                    desired_angle = matlab.double([theta] * numImgs)
+                    abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
+                    Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
+                    heat_scores[i, j] = np.max(Efficiency)
+                    t.update()
+        fig_path = params.output_dir + '/figures/heatmap_batch{}.png'.format(params.solver_batch_size_start)
+        utils.plot_heatmap(lamda_list, theta_list, heat_scores, fig_path)
+        print("Plot heatmap successfully!")
 
-        wavelength = matlab.double([lamda] * numImgs)
-        desired_angle = matlab.double([theta] * numImgs)
-        abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
-        Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
-        max_now = np.argmax(Efficiency)
-        max_eff_index.append(max_now)
-        max_eff.append(Efficiency[max_now])
-        best_struc.append(strucs[max_now, :, :].reshape(-1))
+    else:
+        max_eff_index = []
+        max_eff = []
+        best_struc = []
+        with tqdm(total=test_num) as t:
+            for i in range(test_num):
+                lamda = random.uniform(600, 1200)
+                theta = random.uniform(40, 80)
 
-    print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
-        max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
-    return max_eff, best_struc
+                wavelength = matlab.double([lamda] * numImgs)
+                desired_angle = matlab.double([theta] * numImgs)
+                abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
+                Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
+                max_now = np.argmax(Efficiency)
+                max_eff_index.append(max_now)
+                max_eff.append(Efficiency[max_now])
+                best_struc.append(strucs[max_now, :, :].reshape(-1))
+                t.update()
+
+        print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
+            max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
 
 
 def train(models, optimizers, schedulers, eng, params):
@@ -299,8 +321,7 @@ def train(models, optimizers, schedulers, eng, params):
                 g_loss_solver = - torch.sum(torch.mean(Gradients, dim=0).view(-1)) - torch.mean(
                     torch.abs(gen_imgs.view(-1)) * (2.0 - torch.abs(gen_imgs.view(-1)))) * binary_penalty
             else:
-                g_loss_solver = - \
-                    torch.sum(torch.mean(Gradients, dim=0).view(-1))
+                g_loss_solver = - torch.sum(torch.mean(Gradients, dim=0).view(-1))
 
             g_loss_solver.backward()
             optimizer_G.step()

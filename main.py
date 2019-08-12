@@ -24,6 +24,7 @@ parser.add_argument('--angle', type=float, default=60)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--test_group', action='store_true', default=False)
 parser.add_argument('--test_num', type=int, default=10)
+parser.add_argument('--heatmap', action='store_true', default=False)
 
 
 if __name__ == '__main__':
@@ -51,6 +52,7 @@ if __name__ == '__main__':
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
     params.restore_from = args.restore_from
+    params.heatmap = args.heatmap
     params.w = float(args.wavelength)
     params.a = float(args.angle)
 

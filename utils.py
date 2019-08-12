@@ -243,6 +243,19 @@ def plot_scatter(imgs, Effs, Iter, fig_path):
     plt.close()
 
 
+def plot_heatmap(lamda_list, theta_list, heat_scores, fig_path):
+    plt.figure()
+    plt.imshow(heat_scores, interpolation='nearest', cmap=plt.cm.rainbow)
+    plt.xlabel('Deflection angle (deg)')
+    plt.ylabel('Wavelength (nm)')
+    plt.colorbar()
+    plt.xticks(np.arange(len(theta_list)), theta_list)
+    plt.yticks(np.arange(len(lamda_list)), lamda_list[::-1])
+    plt.title('Heatmap')
+    plt.savefig(fig_path, dpi=300)
+    plt.close()
+
+
 def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
     plt.figure(figsize=(8, 4))
     gs = gridspec.GridSpec(1, 2, width_ratios=[1.2, 1])

@@ -16,23 +16,42 @@ A matlab engine for python is needed for EM simulation. Please refer to [MathWor
 
 Path of [RETICOLO](https://www.lp2n.institutoptique.fr/Membres-Services/Responsables-d-equipe/LALANNE-Philippe) should be added in the `main_single.py`
 
-## Training the GLOnet
+## Train the GLOnet
 
 You can change the parameters by editing `Params.json` in `results` folder. 
 
 If you want to train the network, simply run
 ```
-python main_single.py 
+python main.py 
 ```
 
 or 
 
 ```
-python main_single.py --output_dir results --w 900 --a 60
+python main.py --output_dir results
 ```
 
 to specify non-default output folder or parameters
 
+## Test model
+
+- test single pair
+
+```
+python main.py --restore_from path_of_model --test --wavelength 600 --angle 80
+```
+
+- test several pairs randomly
+
+```
+python main.py --restore_from path_of_model --test_group --test_num 10
+```
+
+- test all pairs in range [600,1200] and [40,80] (step = 10, i.e. 35 pairs)
+
+```
+python main.py --restore_from path_of_model --test_group --heatmap
+```
 
 ## Results
 
