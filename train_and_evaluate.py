@@ -180,7 +180,7 @@ def test_group(generator, eng, numImgs, params, test_num):
         theta_list = [40, 50, 60, 70, 80]
         H = len(lamda_list)
         W = len(theta_list)
-        heat_scores = np.zeros((W, H))
+        heat_scores = np.zeros((H, W))
         with tqdm(total=H * W) as t:
             for lamda, i in zip(lamda_list[::-1], range(H)):
                 for theta, j in zip(theta_list, range(W)):
