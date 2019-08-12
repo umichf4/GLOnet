@@ -11,6 +11,7 @@ import scipy.io as io
 import numpy as np
 from sklearn.decomposition import PCA
 import random
+import logger
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 randconst = torch.rand(1).type(Tensor) * 2 - 1
@@ -68,7 +69,8 @@ def PCA_analysis(generator, pca, eng, params, numImgs=100):
     grads = eng.GradientFromSolver_1D_parallel(img, wavelength, desired_angle)
     grad_2 = pca.transform(grads)
     if params.iter % 2 == 0:
-        utils.plot_envolution(params.img_2_prev, params.eff_prev, params.grad_2_prev, img_2, Efficiency, params.iter, params.output_dir)
+        utils.plot_envolution(params.img_2_prev, params.eff_prev, params.grad_2_prev,
+                              img_2, Efficiency, params.iter, params.output_dir)
     else:
         utils.plot_arrow(img_2, Efficiency, grad_2, params.iter, params.output_dir)
     params.img_2_prev = img_2
@@ -95,7 +97,7 @@ def sample_images(generator, batch_size, params):
     z = torch.cat((lamda, theta, noise), 1)
     if params.cuda:
         z.cuda()
-    return generator(z)
+    return generator(z, params.binary_amp)
 
 
 def evaluate(generator, eng, numImgs, params):
@@ -174,29 +176,51 @@ def test_group(generator, eng, numImgs, params, test_num):
     img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
     img = matlab.double(img.tolist())
 
-    max_eff_index = []
-    max_eff = []
-    best_struc = []
-    for i in range(test_num):
-        lamda = random.uniform(600, 1200)
-        theta = random.uniform(40, 80)
+    if params.heatmap:
+        lamda_list = [600, 700, 800, 900, 1000, 1100, 1200]
+        theta_list = [40, 50, 60, 70, 80]
+        H = len(lamda_list)
+        W = len(theta_list)
+        heat_scores = np.zeros((H, W))
+        with tqdm(total=H * W, ncols=70) as t:
+            for lamda, i in zip(lamda_list[::-1], range(H)):
+                for theta, j in zip(theta_list, range(W)):
+                    wavelength = matlab.double([lamda] * numImgs)
+                    desired_angle = matlab.double([theta] * numImgs)
+                    abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
+                    Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
+                    heat_scores[i, j] = np.max(Efficiency)
+                    t.update()
+        fig_path = params.output_dir + '/figures/heatmap_batch{}.png'.format(params.solver_batch_size_start)
+        utils.plot_heatmap(lamda_list, theta_list, heat_scores, fig_path)
+        print("Plot heatmap successfully!")
 
-        wavelength = matlab.double([lamda] * numImgs)
-        desired_angle = matlab.double([theta] * numImgs)
-        abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
-        Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
-        max_now = np.argmax(Efficiency)
-        max_eff_index.append(max_now)
-        max_eff.append(Efficiency[max_now])
-        best_struc.append(strucs[max_now, :, :].reshape(-1))
+    else:
+        max_eff_index = []
+        max_eff = []
+        best_struc = []
+        with tqdm(total=test_num, ncols=70) as t:
+            for i in range(test_num):
+                lamda = random.uniform(600, 1200)
+                theta = random.uniform(40, 80)
 
-    print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
-        max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
-    return max_eff, best_struc
+                wavelength = matlab.double([lamda] * numImgs)
+                desired_angle = matlab.double([theta] * numImgs)
+                abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
+                Efficiency = torch.Tensor([abseffs]).data.cpu().numpy().reshape(-1)
+                max_now = np.argmax(Efficiency)
+                max_eff_index.append(max_now)
+                max_eff.append(Efficiency[max_now])
+                best_struc.append(strucs[max_now, :, :].reshape(-1))
+                t.update()
+
+        print('{} {:.2f} {} {:.2f} {} {:.2f} {} {:.2f} '.format('Lowest:', min(max_eff), 'Highest:', max(
+            max_eff), 'Average:', np.mean(np.array(max_eff)), 'Var:', np.var(np.array(max_eff))))
 
 
 def train(models, optimizers, schedulers, eng, params):
-
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
     generator = models
     optimizer_G = optimizers
     scheduler_G = schedulers
@@ -206,6 +230,9 @@ def train(models, optimizers, schedulers, eng, params):
     pca = PCA_model("PCA.mat")
 
     make_figure_dir(params.output_dir)
+
+    # lamda_list = [600, 700, 800, 900, 1000, 1100, 1200]
+    # theta_list = [40, 50, 60, 70, 80]
 
     if params.restore_from is None:
         Eff_mean_history = []
@@ -222,7 +249,10 @@ def train(models, optimizers, schedulers, eng, params):
         imgs_2 = params.checkpoint['imgs_2']
         Effs_2 = params.checkpoint['Effs_2']
 
-    with tqdm(total=params.numIter) as t:
+    if params.tensorboard:
+        loss_logger = logger.set_logger(params.output_dir)
+
+    with tqdm(total=params.numIter, leave=False, ncols=70) as t:
 
         for i in range(params.numIter):
             it = i + 1
@@ -231,39 +261,9 @@ def train(models, optimizers, schedulers, eng, params):
 
             scheduler_G.step()
 
-            if it % params.save_iter == 0:
-                model_dir = os.path.join(
-                    params.output_dir, 'model', 'iter{}'.format(it + iter0))
-                os.makedirs(model_dir, exist_ok=True)
-                utils.save_checkpoint({'iter': it + iter0 - 1,
-                                       'gen_state_dict': generator.state_dict(),
-                                       'optim_G_state_dict': optimizer_G.state_dict(),
-                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
-                                       'Eff_mean_history': Eff_mean_history,
-                                       'Binarization_history': Binarization_history,
-                                       'pattern_variance': pattern_variance,
-                                       'Effs_2': Effs_2,
-                                       'imgs_2': imgs_2
-                                       },
-                                      checkpoint=model_dir)
-
-            if it > params.numIter - 1:
-                model_dir = os.path.join(params.output_dir, 'model')
-                utils.save_checkpoint({'iter': it + iter0 - 1,
-                                       'gen_state_dict': generator.state_dict(),
-                                       'optim_G_state_dict': optimizer_G.state_dict(),
-                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
-                                       'Eff_mean_history': Eff_mean_history,
-                                       'Binarization_history': Binarization_history,
-                                       'pattern_variance': pattern_variance,
-                                       'Effs_2': Effs_2,
-                                       'imgs_2': imgs_2
-                                       },
-                                      checkpoint=model_dir)
-
-                io.savemat(params.output_dir + '/scatter.mat',
-                           mdict={'imgs_2': np.asarray(imgs_2), 'Effs_2': np.asarray(Effs_2)})
-                return
+            # binarization amplitude in the tanh function
+            if params.iter < 1000:
+                params.binary_amp = int(params.iter / 100) + 1
 
             # use solver and phyiscal gradient to update the Generator
             params.solver_batch_size = int(params.solver_batch_size_start + (params.solver_batch_size_end -
@@ -281,21 +281,23 @@ def train(models, optimizers, schedulers, eng, params):
             """
             batch equivalent
             """
-            lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
-            thetaconst = torch.rand(1).type(Tensor) * 40 + 40
-            lamda = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * lamdaconst
-            theta = torch.ones(params.solver_batch_size,
-                               1).type(Tensor) * thetaconst
+            # lamdaconst = torch.rand(1).type(Tensor) * 600 + 600
+            # thetaconst = torch.rand(1).type(Tensor) * 40 + 40
+            # lamda = torch.ones(params.solver_batch_size,
+            #                    1).type(Tensor) * random.choice(lamda_list)
+            # theta = torch.ones(params.solver_batch_size,
+            #                    1).type(Tensor) * random.choice(theta_list)
 
             """
             batch randomized
             """
-            # lamda = torch.rand(params.solver_batch_size, 1).type(Tensor) * 600 + 600
-            # theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
+            lamda = torch.rand(params.solver_batch_size, 1).type(Tensor) * 600 + 600
+            theta = torch.rand(params.solver_batch_size, 1).type(Tensor) * 40 + 40
 
             z = torch.cat((lamda, theta, noise), 1)
-            gen_imgs = generator(z)
+            z = z.to(device)
+            generator.to(device)
+            gen_imgs = generator(z, params.binary_amp)
 
             img = torch.squeeze(gen_imgs[:, 0, :]).data.cpu().numpy()
             img = matlab.double(img.tolist())
@@ -323,17 +325,20 @@ def train(models, optimizers, schedulers, eng, params):
                 g_loss_solver = - torch.sum(torch.mean(Gradients, dim=0).view(-1)) - torch.mean(
                     torch.abs(gen_imgs.view(-1)) * (2.0 - torch.abs(gen_imgs.view(-1)))) * binary_penalty
             else:
-                g_loss_solver = - \
-                    torch.sum(torch.mean(Gradients, dim=0).view(-1))
+                g_loss_solver = - torch.sum(torch.mean(Gradients, dim=0).view(-1))
 
             g_loss_solver.backward()
             optimizer_G.step()
 
-            if it % params.save_iter == 0:
+            if params.tensorboard:
+                loss_logger.scalar_summary('loss', g_loss_solver.cpu().detach().numpy(), it)
+
+            if it == 1 or it % params.save_iter == 0:
+
+                # visualization
 
                 generator.eval()
                 outputs_imgs = sample_images(generator, 100, params)
-                generator.train()
 
                 Binarization = torch.mean(torch.abs(outputs_imgs.view(-1)))
                 Binarization_history.append(Binarization)
@@ -342,19 +347,51 @@ def train(models, optimizers, schedulers, eng, params):
                 pattern_variance.append(diversity.data)
 
                 numImgs = 1 if params.noise_constant == 1 else 100
-                img_2 = []
-                Eff_2 = []
 
                 img_2_tmp, Eff_2_tmp = PCA_analysis(
                     generator, pca, eng, params, numImgs)
                 imgs_2.append(img_2_tmp)
                 Effs_2.append(Eff_2_tmp)
 
-                imgs_2.append(img_2)
-                Effs_2.append(Eff_2)
-
                 Eff_mean_history.append(np.mean(Eff_2_tmp))
                 utils.plot_loss_history(
                     ([], [], Eff_mean_history, pattern_variance, Binarization_history), params.output_dir)
+
+                generator.train()
+
+                # save model
+
+                model_dir = os.path.join(
+                    params.output_dir, 'model', 'iter{}'.format(it + iter0))
+                os.makedirs(model_dir, exist_ok=True)
+                utils.save_checkpoint({'iter': it + iter0,
+                                       'gen_state_dict': generator.state_dict(),
+                                       'optim_G_state_dict': optimizer_G.state_dict(),
+                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
+                                       'Eff_mean_history': Eff_mean_history,
+                                       'Binarization_history': Binarization_history,
+                                       'pattern_variance': pattern_variance,
+                                       'Effs_2': Effs_2,
+                                       'imgs_2': imgs_2
+                                       },
+                                      checkpoint=model_dir)
+
+            if it == params.numIter:
+                model_dir = os.path.join(params.output_dir, 'model')
+                utils.save_checkpoint({'iter': it + iter0,
+                                       'gen_state_dict': generator.state_dict(),
+                                       'optim_G_state_dict': optimizer_G.state_dict(),
+                                       'scheduler_G_state_dict': scheduler_G.state_dict(),
+                                       'Eff_mean_history': Eff_mean_history,
+                                       'Binarization_history': Binarization_history,
+                                       'pattern_variance': pattern_variance,
+                                       'Effs_2': Effs_2,
+                                       'imgs_2': imgs_2
+                                       },
+                                      checkpoint=model_dir)
+
+                io.savemat(params.output_dir + '/scatter.mat',
+                           mdict={'imgs_2': np.asarray(imgs_2), 'Effs_2': np.asarray(Effs_2)})
+                return
 
             t.update()

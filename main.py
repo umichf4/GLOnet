@@ -11,29 +11,27 @@ from torchsummary import summary
 
 import matlab.engine
 eng = matlab.engine.start_matlab()
-eng.addpath(eng.genpath('/reticolo_allege'))
+eng.addpath(eng.genpath('reticolo_allege'))
 eng.addpath(eng.genpath('solvers'))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output_dir', default='results',
-                    help="Generated devices folder")
-parser.add_argument('--restore_from', default=None,
+                    help="Generated devices folder", type=str)
+parser.add_argument('--restore_from', default=None, type=str,
                     help="Optional, directory or file containing weights to reload before training")
-
-parser.add_argument('--wavelength', default=700)
-parser.add_argument('--angle', default=50)
-parser.add_argument('--test', default=True)
-parser.add_argument('--test_group', default=False)
-parser.add_argument('--test_num', default=10)
-
+parser.add_argument('--wavelength', type=float, default=700)
+parser.add_argument('--angle', type=float, default=60)
+parser.add_argument('--test', action='store_true', default=False)
+parser.add_argument('--test_group', action='store_true', default=False)
+parser.add_argument('--test_num', type=int, default=10)
+parser.add_argument('--heatmap', action='store_true', default=False)
+parser.add_argument('--tensorboard', action='store_true', default=False)
 
 if __name__ == '__main__':
     # Load the directory from commend line
     args = parser.parse_args()
     output_dir = args.output_dir + \
         '/w{}a{}'.format(args.wavelength, args.angle)
-    restore_from = args.restore_from
-    # restore_from = 'results/w900a60/model/model.pth'
 
     os.makedirs(output_dir + '/outputs', exist_ok=True)
     os.makedirs(output_dir + '/figures', exist_ok=True)
@@ -53,17 +51,9 @@ if __name__ == '__main__':
     params.lambda_gp = 10.0
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
-    params.restore_from = restore_from
-
-    params.batch_size = int(params.batch_size)
-    params.numIter = int(params.numIter)
-    params.noise_dims = int(params.noise_dims)
-    params.label_dims = int(params.label_dims)
-    params.gkernlen = int(params.gkernlen)
-    params.n_solver = int(params.n_solver)
-    params.n_solver_th = int(params.n_solver_th)
-    params.step_size = int(params.step_size)
-
+    params.restore_from = args.restore_from
+    params.heatmap = args.heatmap
+    params.tensorboard = args.tensorboard
     params.w = args.wavelength
     params.a = args.angle
 
@@ -73,27 +63,27 @@ if __name__ == '__main__':
     if params.cuda:
         generator.cuda()
 
+    # Define the optimizers
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=params.lr_gen,
+                                   betas=(params.beta1_gen, params.beta2_gen))
+
+    # Define the schedulers
+    scheduler_G = torch.optim.lr_scheduler.StepLR(
+        optimizer_G, step_size=params.step_size, gamma=params.gamma)
+
+    # load model data
+    if params.restore_from is not None:
+        params.checkpoint = utils.load_checkpoint(
+            params.restore_from, generator, optimizer_G, scheduler_G)
+        logging.info('Model data loaded')
+
     if args.test:
-        if args.test_group:
-            max_eff, best_struc = test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
-        else:
-            test(generator, eng, numImgs=500, params=params)
+        test(generator, eng, numImgs=500, params=params)
+
+    elif args.test_group:
+        test_group(generator, eng, numImgs=500, params=params, test_num=args.test_num)
+
     else:
-        # Define the optimizers
-        optimizer_G = torch.optim.Adam(generator.parameters(), lr=params.lr_gen,
-                                       betas=(params.beta1_gen, params.beta2_gen))
-
-        # Define the schedulers
-        scheduler_G = torch.optim.lr_scheduler.StepLR(
-            optimizer_G, step_size=params.step_size, gamma=params.gamma)
-
-        # load model data
-        if restore_from is not None:
-            # params.checkpoint = utils.load_checkpoint(restore_from, (generator, discriminator), (optimizer_G, optimizer_D), (scheduler_G, scheduler_D))
-            params.checkpoint = utils.load_checkpoint(
-                restore_from, generator, optimizer_G, scheduler_G)
-            logging.info('Model data loaded')
-
         # train the model and save
         if params.numIter != 0:
             logging.info('Start training')
