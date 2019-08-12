@@ -315,7 +315,8 @@ def train(models, optimizers, schedulers, eng, params):
             Eff_reshape = Efficiency_real.view(-1, 1).unsqueeze(2)
 
             Gradients = Tensor(grads).unsqueeze(
-                1) * gen_imgs * 1e-3 * (1. / params.sigma * torch.exp((Eff_reshape - Eff_max) / params.sigma))
+                1) * gen_imgs /  params.solver_batch_size / params.sigma * (
+                1. / params.sigma * torch.exp((Eff_reshape - Eff_max) / params.sigma))
 
             # Train generator
             optimizer_G.zero_grad()
