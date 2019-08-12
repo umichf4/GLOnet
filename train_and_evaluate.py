@@ -181,7 +181,7 @@ def test_group(generator, eng, numImgs, params, test_num):
         H = len(lamda_list)
         W = len(theta_list)
         heat_scores = np.zeros((H, W))
-        with tqdm(total=H * W) as t:
+        with tqdm(total=H * W, ncols=70) as t:
             for lamda, i in zip(lamda_list[::-1], range(H)):
                 for theta, j in zip(theta_list, range(W)):
                     wavelength = matlab.double([lamda] * numImgs)
@@ -198,7 +198,7 @@ def test_group(generator, eng, numImgs, params, test_num):
         max_eff_index = []
         max_eff = []
         best_struc = []
-        with tqdm(total=test_num) as t:
+        with tqdm(total=test_num, ncols=70) as t:
             for i in range(test_num):
                 lamda = random.uniform(600, 1200)
                 theta = random.uniform(40, 80)
@@ -248,7 +248,7 @@ def train(models, optimizers, schedulers, eng, params):
         imgs_2 = params.checkpoint['imgs_2']
         Effs_2 = params.checkpoint['Effs_2']
 
-    with tqdm(total=params.numIter) as t:
+    with tqdm(total=params.numIter, ncols=70) as t:
 
         for i in range(params.numIter):
             it = i + 1
