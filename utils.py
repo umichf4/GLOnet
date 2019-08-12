@@ -256,37 +256,37 @@ def plot_heatmap(lamda_list, theta_list, heat_scores, fig_path):
     plt.close()
 
 
-# def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
-#     plt.figure(figsize=(8, 4))
-#     gs = gridspec.GridSpec(1, 2, width_ratios=[1.2, 1])
-#     plt.suptitle('Iteration {}'.format(Iter), fontsize=16)
+def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
+    plt.figure(figsize=(8, 4))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1.2, 1])
+    plt.suptitle('Iteration {}'.format(Iter), fontsize=16)
 
-#     plt.subplot(gs[0])
-#     plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
-#                 cmap=plt.cm.rainbow, vmin=50, vmax=100)
-#     cb = plt.colorbar()
-#     cb.ax.tick_params(labelsize=12)
-#     plt.clim(50, 100)
-#     plt.xlim(-10, 5)
-#     plt.ylim(0, 10)
-#     plt.yticks([])
-#     plt.xticks([])
-#     # plt.xticks(fontsize=20)
-#     # plt.yticks(fontsize=20)
+    plt.subplot(gs[0])
+    plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
+                cmap=plt.cm.rainbow, vmin=50, vmax=100)
+    cb = plt.colorbar()
+    cb.ax.tick_params(labelsize=12)
+    plt.clim(50, 100)
+    plt.xlim(-10, 5)
+    plt.ylim(0, 10)
+    plt.yticks([])
+    plt.xticks([])
+    # plt.xticks(fontsize=20)
+    # plt.yticks(fontsize=20)
 
-#     plt.subplot(gs[1])
-#     bins = [i * 5 for i in range(21)]
-#     plt.hist(Effs * 100, bins, facecolor='blue', alpha=0.5)
-#     plt.xlim(0, 100)
-#     plt.ylim(0, 100)
-#     plt.yticks([])
-#     # plt.xticks(fontsize=20)
-#     plt.xticks(fontsize=12)
-#     plt.xlabel('Deflection efficiency (%)', fontsize=12)
-#     plt.tight_layout()
-#     plt.subplots_adjust(top=0.88)
-#     plt.savefig(fig_path, dpi=300)
-#     plt.close()
+    plt.subplot(gs[1])
+    bins = [i * 5 for i in range(21)]
+    plt.hist(Effs * 100, bins, facecolor='blue', alpha=0.5)
+    plt.xlim(0, 100)
+    plt.ylim(0, 100)
+    plt.yticks([])
+    # plt.xticks(fontsize=20)
+    plt.xticks(fontsize=12)
+    plt.xlabel('Deflection efficiency (%)', fontsize=12)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.88)
+    plt.savefig(fig_path, dpi=300)
+    plt.close()
 
 
 def plot_histogram(Effs, Iter, fig_path):
