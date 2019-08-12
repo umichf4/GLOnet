@@ -11,6 +11,7 @@ import scipy.io as io
 import numpy as np
 from sklearn.decomposition import PCA
 import random
+import logger
 
 Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 randconst = torch.rand(1).type(Tensor) * 2 - 1
@@ -248,6 +249,9 @@ def train(models, optimizers, schedulers, eng, params):
         imgs_2 = params.checkpoint['imgs_2']
         Effs_2 = params.checkpoint['Effs_2']
 
+    if params.tensorboard:
+        loss_logger = logger.set_logger(params.output_dir)
+
     with tqdm(total=params.numIter, ncols=70) as t:
 
         for i in range(params.numIter):
@@ -325,6 +329,9 @@ def train(models, optimizers, schedulers, eng, params):
 
             g_loss_solver.backward()
             optimizer_G.step()
+
+            if params.tensorboard:
+                loss_logger.scalar_summary('loss', g_loss_solver.cpu().detach().numpy(), it)
 
             if it % params.save_iter == 0:
 

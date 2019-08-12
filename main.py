@@ -19,13 +19,13 @@ parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder", type=str)
 parser.add_argument('--restore_from', default=None, type=str,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', type=float, default=900)
+parser.add_argument('--wavelength', type=float, default=700)
 parser.add_argument('--angle', type=float, default=60)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--test_group', action='store_true', default=False)
 parser.add_argument('--test_num', type=int, default=10)
 parser.add_argument('--heatmap', action='store_true', default=False)
-
+parser.add_argument('--tensorboard', action='store_true', default=False)
 
 if __name__ == '__main__':
     # Load the directory from commend line
@@ -53,8 +53,9 @@ if __name__ == '__main__':
     params.cuda = torch.cuda.is_available()
     params.restore_from = args.restore_from
     params.heatmap = args.heatmap
-    params.w = float(args.wavelength)
-    params.a = float(args.angle)
+    params.tensorboard = args.tensorboard
+    params.w = args.wavelength
+    params.a = args.angle
 
     # Define the models
 
