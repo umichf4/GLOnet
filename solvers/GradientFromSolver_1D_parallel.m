@@ -1,6 +1,5 @@
 function [ Grs_and_Effs ] = GradientFromSolver_1D_parallel( imgs, wavelengths, desired_angles)
 
-disp(size(wavelengths))
 N = length(wavelengths);
 Grs = zeros(size(imgs));
 Effs = zeros(N, 1);

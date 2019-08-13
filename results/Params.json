@@ -15,8 +15,8 @@
     "n_solver" : 1,
     "n_solver_th": 0,
     "save_iter": 100,
-    "solver_batch_size_start": 256,
-    "solver_batch_size_end": 256,
+    "solver_batch_size_start": 1024,
+    "solver_batch_size_end": 1024,
     "solver_batch_size_power": 1,
     "binary": 1,
     "binary_penalty_start": 0.2,
@@ -26,5 +26,5 @@
     "binary_amp": 10,
     "step_size": 500000000,
     "gamma": 1,
-    "sigma": 0.5
+    "sigma": 0.4
 }

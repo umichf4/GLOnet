@@ -9,6 +9,9 @@ import utils
 import torch
 from torchsummary import summary
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import matlab.engine
 eng = matlab.engine.start_matlab()
 eng.addpath(eng.genpath('reticolo_allege'))
@@ -19,7 +22,7 @@ parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder", type=str)
 parser.add_argument('--restore_from', default=None, type=str,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', type=float, default=700)
+parser.add_argument('--wavelength', type=float, default=900)
 parser.add_argument('--angle', type=float, default=60)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--test_group', action='store_true', default=False)

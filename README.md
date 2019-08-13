@@ -33,6 +33,12 @@ python main.py --output_dir results
 
 to specify non-default output folder or parameters
 
+or
+```
+python main.py --tensorboard
+```
+to visualize the loss curve in tensorboard
+
 ## Test model
 
 - test single pair

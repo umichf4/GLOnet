@@ -111,7 +111,8 @@ def save_checkpoint(state, checkpoint):
         print("Checkpoint Directory does not exist! Making directory {}".format(checkpoint))
         os.mkdir(checkpoint)
     else:
-        print("Checkpoint Directory exists! ")
+        # print("Checkpoint Directory exists! ")
+        pass
     torch.save(state, filepath)
 
 
@@ -172,7 +173,7 @@ def plot_loss_history(loss_history, output_dir):
         plt.plot(Eff_history)
         plt.ylabel('Average Efficiency')
         plt.xlabel('iteration/100')
-        plt.axis([0, len(Eff_history), 0, 1])
+        plt.axis([0, len(Eff_history) - 1, 0, 1])
 
         plt.savefig(output_dir + '/figures/Eff_history.png')
         history_path = os.path.join(output_dir, 'history.mat')
@@ -192,7 +193,7 @@ def plot_loss_history(loss_history, output_dir):
         plt.plot(Bin_history)
         plt.xlabel('iteration/100')
         plt.legend(('Average Efficiency', 'Binarizaion'))
-        plt.axis([0, len(Eff_history), 0, 1])
+        plt.axis([0, len(Eff_history) - 1, 0, 1])
         plt.savefig(output_dir + '/figures/Eff_history.png')
 
         history_path = os.path.join(output_dir, 'history.mat')
@@ -214,7 +215,7 @@ def plot_loss_history(loss_history, output_dir):
         plt.plot(Bin_history)
         plt.xlabel('iteration/100')
         plt.legend(('Average Efficiency', 'Pattern diversity', 'Binarizaion'))
-        plt.axis([0, len(Eff_mean_history), 0, 1.5])
+        plt.axis([0, len(Eff_mean_history) - 1, 0, 1.5])
         plt.savefig(output_dir + '/figures/Eff_history.png')
 
         history_path = os.path.join(output_dir, 'history.mat')
@@ -226,7 +227,7 @@ def plot_loss_history(loss_history, output_dir):
 
 
 def plot_scatter(imgs, Effs, Iter, fig_path):
-    fig = plt.figure()
+    plt.figure()
     plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
                 cmap=plt.cm.rainbow, vmin=0, vmax=100)
     cb = plt.colorbar()
@@ -291,7 +292,7 @@ def plot_scatter_and_histogram(imgs, Effs, Iter, fig_path):
 
 def plot_histogram(Effs, Iter, fig_path):
     # %matplotlib qt5
-    ax = plt.figure()
+    plt.figure()
     bins = [i * 5 for i in range(21)]
     plt.hist(Effs * 100, bins, facecolor='blue', alpha=0.5)
     plt.xlim(0, 100)
@@ -307,17 +308,17 @@ def plot_histogram(Effs, Iter, fig_path):
 
 
 def plot_arrow(imgs, Effs, grads, Iter, fig_path):
-    ax = plt.figure()
+    plt.figure()
     plt.scatter(imgs[:, 0], imgs[:, 1], c=Effs * 100,
                 cmap=plt.cm.rainbow, vmin=0, vmax=100)
     plt.colorbar()
     plt.clim(0, 100)
     plt.quiver(imgs[:, 0], imgs[:, 1], grads[:, 0], grads[:, 1])
-    #plt.xlim(-11, -3)
-    #plt.ylim(2, 8)
+    # plt.xlim(-11, -3)
+    # plt.ylim(2, 8)
     # plt.xticks(fontsize=20)
     # plt.yticks(fontsize=20)
-    #plt.title('Iteration {}'.format(Iter), fontsize=20)
+    # plt.title('Iteration {}'.format(Iter), fontsize=20)
     plt.yticks([])
     plt.xticks([])
     plt.savefig(fig_path, dpi=300)
@@ -325,7 +326,7 @@ def plot_arrow(imgs, Effs, grads, Iter, fig_path):
 
 
 def plot_envolution(imgs_prev, Effs_prev, grads_prev, imgs, Effs, Iter, fig_path):
-    ax = plt.figure(figsize=(3, 3))
+    plt.figure(figsize=(3, 3))
 
     Effs_prev = np.ones_like(Effs_prev) * 0.2
     Effs = np.ones_like(Effs)
@@ -336,12 +337,12 @@ def plot_envolution(imgs_prev, Effs_prev, grads_prev, imgs, Effs, Iter, fig_path
     plt.quiver(imgs_prev[:, 0], imgs_prev[:, 1],
                grads_prev[:, 0], grads_prev[:, 1])
     # plt.colorbar()
-    #plt.clim(0, 1)
-    #plt.xlim(-11, -3)
-    #plt.ylim(2, 8)
+    # plt.clim(0, 1)
+    # plt.xlim(-11, -3)
+    # plt.ylim(2, 8)
     # plt.xticks(fontsize=20)
     # plt.yticks(fontsize=20)
-    #plt.title('Iteration {}'.format(Iter), fontsize=20)
+    # plt.title('Iteration {}'.format(Iter), fontsize=20)
     plt.yticks([])
     plt.xticks([])
     plt.savefig(fig_path, dpi=300)
