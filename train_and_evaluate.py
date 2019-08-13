@@ -21,7 +21,7 @@ def make_figure_dir(folder):
     os.makedirs(folder + '/figures/scatter', exist_ok=True)
     os.makedirs(folder + '/figures/histogram', exist_ok=True)
     os.makedirs(folder + '/figures/deviceSamples', exist_ok=True)
-    os.makedirs(folder + '/figures/scatter_and_histogram', exist_ok=True)
+    # os.makedirs(folder + '/figures/scatter_and_histogram', exist_ok=True)
 
 
 def PCA_model(data_path):
@@ -177,8 +177,8 @@ def test_group(generator, eng, numImgs, params, test_num):
     img = matlab.double(img.tolist())
 
     if params.heatmap:
-        lamda_list = [600, 700, 800, 900, 1000, 1100, 1200]
-        theta_list = [40, 50, 60, 70, 80]
+        lamda_list = [600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200]
+        theta_list = [40, 45, 50, 55, 60, 65, 70, 75, 80]
         H = len(lamda_list)
         W = len(theta_list)
         heat_scores = np.zeros((H, W))
