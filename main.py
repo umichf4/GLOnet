@@ -22,11 +22,13 @@ parser.add_argument('--output_dir', default='results',
                     help="Generated devices folder", type=str)
 parser.add_argument('--restore_from', default=None, type=str,
                     help="Optional, directory or file containing weights to reload before training")
-parser.add_argument('--wavelength', type=float, default=800)
-parser.add_argument('--angle', type=float, default=60)
+parser.add_argument('--wavelength', type=float, default=1200)
+parser.add_argument('--angle', type=float, default=40)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--test_group', action='store_true', default=False)
-parser.add_argument('--test_num', type=int, default=10)
+parser.add_argument('--test_num', type=int, default=10, help="Number of pairs you want to feed into test model")
+parser.add_argument('--generate_num', type=int, default=10,
+                    help="Number of devices you want to generate for each test pair")
 parser.add_argument('--heatmap', action='store_true', default=False)
 parser.add_argument('--tensorboard', action='store_true', default=False)
 
@@ -81,10 +83,10 @@ if __name__ == '__main__':
         logging.info('Model data loaded')
 
     if args.test:
-        test(generator, eng, numImgs=100, params=params)
+        test(generator, eng, numImgs=args.generate_num, params=params)
 
     elif args.test_group:
-        test_group(generator, eng, numImgs=100, params=params, test_num=args.test_num)
+        test_group(generator, eng, numImgs=args.generate_num, params=params, test_num=args.test_num)
 
     else:
         # train the model and save
@@ -94,4 +96,4 @@ if __name__ == '__main__':
 
         # Generate images and save
         logging.info('Start generating devices for wavelength')
-        evaluate(generator, eng, numImgs=500, params=params)
+        evaluate(generator, eng, numImgs=args.generate_num, params=params)

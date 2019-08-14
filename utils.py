@@ -246,13 +246,14 @@ def plot_scatter(imgs, Effs, Iter, fig_path):
 
 def plot_heatmap(lamda_list, theta_list, heat_scores, fig_path):
     plt.figure()
-    plt.imshow(heat_scores, interpolation='nearest', cmap=plt.cm.rainbow)
+    plt.imshow(heat_scores, interpolation='nearest', cmap=plt.cm.jet)
     plt.xlabel('Deflection angle (deg)')
     plt.ylabel('Wavelength (nm)')
-    plt.colorbar()
-    plt.xticks(np.arange(len(theta_list)), theta_list)
-    plt.yticks(np.arange(len(lamda_list)), lamda_list[::-1])
-    plt.title('Heatmap')
+    cb = plt.colorbar()
+    cb.ax.set_ylabel('Deflection efficiency')
+    plt.xticks(np.arange(len(theta_list), step=2), theta_list[::2], rotation=45)
+    plt.yticks(np.arange(len(lamda_list), step=2), lamda_list[::-1][::2])
+    plt.title('Heatmap (mean:{:.2f},var:{:.2f})'.format(np.mean(heat_scores), np.var(heat_scores)))
     plt.savefig(fig_path, dpi=300)
     plt.close()
 

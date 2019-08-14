@@ -97,7 +97,37 @@ def sample_images(generator, batch_size, params):
     z = torch.cat((lamda, theta, noise), 1)
     if params.cuda:
         z.cuda()
-    return generator(z, params.binary_amp)
+    images = generator(z, params.binary_amp)
+    images = torch.sign(images)
+    strucs = images.cpu().detach().numpy()
+    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
+    img = matlab.double(img.tolist())
+    return img, strucs
+
+
+def generate_test_images(generator, batch_size, params, wavelength, angle):
+
+    if params.noise_constant == 1:
+        noise = (torch.ones(batch_size, params.noise_dims).type(
+            Tensor) * randconst) * params.noise_amplitude
+    else:
+        if params.noise_distribution == 'uniform':
+            noise = (torch.rand(batch_size, params.noise_dims).type(
+                Tensor) * 2. - 1.) * params.noise_amplitude
+        else:
+            noise = (torch.randn(batch_size, params.noise_dims).type(
+                Tensor)) * params.noise_amplitude
+    lamda = torch.ones(batch_size, 1).type(Tensor) * wavelength
+    theta = torch.ones(batch_size, 1).type(Tensor) * angle
+    z = torch.cat((lamda, theta, noise), 1)
+    if params.cuda:
+        z.cuda()
+    images = generator(z, params.binary_amp)
+    images = torch.sign(images)
+    strucs = images.cpu().detach().numpy()
+    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
+    img = matlab.double(img.tolist())
+    return img, strucs
 
 
 def evaluate(generator, eng, numImgs, params):
@@ -105,16 +135,12 @@ def evaluate(generator, eng, numImgs, params):
 
     filename = 'ccGAN_imgs_Si_w' + \
         str(params.w) + '_' + str(params.a) + 'deg.mat'
-    images = sample_images(generator, numImgs, params)
+    img, strucs = sample_images(generator, numImgs, params)
     file_path = os.path.join(params.output_dir, 'outputs', filename)
     logging.info('Generation is done. \n')
 
     Efficiency = torch.zeros(numImgs)
 
-    images = torch.sign(images)
-    strucs = images.cpu().detach().numpy()
-    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
-    img = matlab.double(img.tolist())
     wavelength = matlab.double([params.w] * numImgs)
     desired_angle = matlab.double([params.a] * numImgs)
     abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
@@ -138,16 +164,12 @@ def test(generator, eng, numImgs, params):
 
     filename = 'ccGAN_imgs_Si_w' + \
         str(params.w) + '_' + str(params.a) + 'deg_test.mat'
-    images = sample_images(generator, numImgs, params)
+    img, strucs = sample_images(generator, numImgs, params)
     file_path = os.path.join(params.output_dir, 'outputs', filename)
     logging.info('Test starts. \n')
 
     Efficiency = torch.zeros(numImgs)
 
-    images = torch.sign(images)
-    strucs = images.cpu().detach().numpy()
-    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
-    img = matlab.double(img.tolist())
     wavelength = matlab.double([params.w] * numImgs)
     desired_angle = matlab.double([params.a] * numImgs)
     abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
@@ -166,25 +188,19 @@ def test(generator, eng, numImgs, params):
 def test_group(generator, eng, numImgs, params, test_num):
     generator.eval()
 
-    images = sample_images(generator, numImgs, params)
     logging.info('Test group starts. \n')
-
     Efficiency = torch.zeros(numImgs)
 
-    images = torch.sign(images)
-    strucs = images.cpu().detach().numpy()
-    img = torch.squeeze(images[:, 0, :]).data.cpu().numpy()
-    img = matlab.double(img.tolist())
-
     if params.heatmap:
-        lamda_list = [600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200]
-        theta_list = [40, 45, 50, 55, 60, 65, 70, 75, 80]
+        lamda_list = list(range(600, 1225, 25))
+        theta_list = list(range(40, 82, 2))
         H = len(lamda_list)
         W = len(theta_list)
         heat_scores = np.zeros((H, W))
         with tqdm(total=H * W, ncols=70) as t:
             for lamda, i in zip(lamda_list[::-1], range(H)):
                 for theta, j in zip(theta_list, range(W)):
+                    img, _ = generate_test_images(generator, numImgs, params, lamda, theta)
                     wavelength = matlab.double([lamda] * numImgs)
                     desired_angle = matlab.double([theta] * numImgs)
                     abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
@@ -203,7 +219,7 @@ def test_group(generator, eng, numImgs, params, test_num):
             for i in range(test_num):
                 lamda = random.uniform(600, 1200)
                 theta = random.uniform(40, 80)
-
+                img, strucs = generate_test_images(generator, numImgs, params, lamda, theta)
                 wavelength = matlab.double([lamda] * numImgs)
                 desired_angle = matlab.double([theta] * numImgs)
                 abseffs = eng.Eval_Eff_1D_parallel(img, wavelength, desired_angle)
