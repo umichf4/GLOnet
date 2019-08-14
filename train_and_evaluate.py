@@ -192,8 +192,8 @@ def test_group(generator, eng, numImgs, params, test_num):
     Efficiency = torch.zeros(numImgs)
 
     if params.heatmap:
-        lamda_list = list(range(600, 1225, 25))
-        theta_list = list(range(40, 82, 2))
+        lamda_list = list(range(params.hwstart, params.hwend + params.hwstride, params.hwstride))
+        theta_list = list(range(params.hastart, params.haend + params.hastride, params.hastride))
         H = len(lamda_list)
         W = len(theta_list)
         heat_scores = np.zeros((H, W))

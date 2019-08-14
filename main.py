@@ -30,6 +30,12 @@ parser.add_argument('--test_num', type=int, default=10, help="Number of pairs yo
 parser.add_argument('--generate_num', type=int, default=10,
                     help="Number of devices you want to generate for each test pair")
 parser.add_argument('--heatmap', action='store_true', default=False)
+parser.add_argument('--hwstart', type=int, default=600)
+parser.add_argument('--hwend', type=int, default=1200)
+parser.add_argument('--hwstride', type=int, default=25)
+parser.add_argument('--hastart', type=int, default=40)
+parser.add_argument('--haend', type=int, default=80)
+parser.add_argument('--hastride', type=int, default=2)
 parser.add_argument('--tensorboard', action='store_true', default=False)
 
 if __name__ == '__main__':
@@ -57,7 +63,13 @@ if __name__ == '__main__':
     params.n_critic = 1
     params.cuda = torch.cuda.is_available()
     params.restore_from = args.restore_from
-    params.heatmap = args.heatmap
+    params.heatmap  = args.heatmap
+    params.hwstart  = args.hwstart
+    params.hwend    = args.hwend
+    params.hwstride = args.hwstride
+    params.hastart  = args.hastart
+    params.haend    = args.haend
+    params.hastride = args.hastride
     params.tensorboard = args.tensorboard
     params.w = args.wavelength
     params.a = args.angle
